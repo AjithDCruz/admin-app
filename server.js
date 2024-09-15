@@ -1,25 +1,31 @@
+const { Pool } = require('pg');
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 app.use(express.static('public'));
 
-// SQLite database setup
-let db = new sqlite3.Database('../employer-app/employees.db');
-
-// Route to get all employee data for admin
-app.get('/admin-data', (req, res) => {
-    db.all(`SELECT * FROM employee`, [], (err, rows) => {
-        if (err) {
-            res.status(500).send("Error retrieving data");
-        } else {
-            res.json(rows);
-        }
-    });
+// Database connection using PostgreSQL
+const pool = new Pool({
+  user: 'your-username',
+  host: 'your-database-host',
+  database: 'your-database-name',
+  password: 'your-password',
+  port: 5432, // or your PostgreSQL port
 });
 
-// Start server
+// Route to fetch all employee data
+app.get('/admin-data', (req, res) => {
+  pool.query('SELECT * FROM employee', (err, result) => {
+    if (err) {
+      res.status(500).send('Error retrieving data');
+    } else {
+      res.json(result.rows);
+    }
+  });
+});
+
+// Start the server
 app.listen(port, () => {
-    console.log(`Admin app running at http://localhost:${port}`);
+  console.log(`Admin app running on http://localhost:${port}`);
 });
